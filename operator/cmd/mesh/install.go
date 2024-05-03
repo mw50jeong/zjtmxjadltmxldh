@@ -32,6 +32,7 @@ import (
 	"github.com/spf13/cobra"
 	"istio.io/istio/istioctl/pkg/cli"
 	"istio.io/istio/pkg/kube"
+
 	// 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	// 	"sigs.k8s.io/controller-runtime/pkg/client"
 	// "istio.io/api/operator/v1alpha1"
@@ -42,7 +43,7 @@ import (
 	// v1alpha12 "istio.io/istio/operator/pkg/apis/istio/v1alpha1"
 	// "istio.io/istio/operator/pkg/cache"
 	// "istio.io/istio/operator/pkg/helmreconciler"
-	// "istio.io/istio/operator/pkg/manifest"
+	"istio.io/istio/operator/pkg/manifest"
 	// "istio.io/istio/operator/pkg/name"
 	// "istio.io/istio/operator/pkg/translate"
 	// "istio.io/istio/operator/pkg/util/clog"
@@ -156,7 +157,7 @@ func InstallCmd(ctx cli.Context) *cobra.Command {
 // func Install(kubeClient kube.CLIClient, rootArgs *RootArgs, iArgs *InstallArgs, logOpts *log.Options, stdOut io.Writer, l clog.Logger, p Printer,
 func Install(kubeClient kube.CLIClient, rootArgs *RootArgs, iArgs *InstallArgs, stdOut io.Writer, p Printer,
 ) error {
-	kubeClient, client, err := KubernetesClients(kubeClient)
+	kubeClient, _, err := KubernetesClients(kubeClient)
 	if err != nil {
 		return err
 	}
@@ -177,72 +178,10 @@ func Install(kubeClient kube.CLIClient, rootArgs *RootArgs, iArgs *InstallArgs, 
 
 	setFlags := applyFlagAliases(iArgs.Set, iArgs.ManifestsPath, iArgs.Revision)
 
-	// _, iop, err := manifest.GenerateConfig(iArgs.InFilenames, setFlags, iArgs.Force, kubeClient, l)
+	manifest.GenerateConfig(iArgs.InFilenames, setFlags, iArgs.Force, kubeClient)
 	// if err != nil {
 	// 	return fmt.Errorf("generate config: %v", err)
 	// }
-
-	// profile, ns, enabledComponents, err := getProfileNSAndEnabledComponents(iop)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to get profile, namespace or enabled components: %v", err)
-	// }
-
-	// // Ignore the err because we don't want to show
-	// // "no running Istio pods in istio-system" for the first time
-	// _ = detectIstioVersionDiff(p, tag, ns, kubeClient, iop)
-	// exists := revtag.PreviousInstallExists(context.Background(), kubeClient.Kube())
-	// err = detectDefaultWebhookChange(p, kubeClient, iop, exists)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to detect the default webhook change: %v", err)
-	// }
-
-	// // Warn users if they use `istioctl install` without any config args.
-	// if !rootArgs.DryRun && !iArgs.SkipConfirmation {
-	// 	prompt := fmt.Sprintf("This will install the Istio %s %q profile (with components: %s) into the cluster. Proceed? (y/N)",
-	// 		tag, profile, humanReadableJoin(enabledComponents))
-	// 	if !Confirm(prompt, stdOut) {
-	// 		p.Println("Cancelled.")
-	// 		os.Exit(1)
-	// 	}
-	// }
-	// if err := configLogs(logOpts); err != nil {
-	// 	return fmt.Errorf("could not configure logs: %s", err)
-	// }
-
-	// iop.Name = savedIOPName(iop)
-
-	// // Detect whether previous installation exists prior to performing the installation.
-	// if err := InstallManifests(iop, iArgs.Force, rootArgs.DryRun, kubeClient, client, iArgs.ReadinessTimeout, l); err != nil {
-	// 	return fmt.Errorf("failed to install manifests: %v", err)
-	// }
-	// opts := &helmreconciler.ProcessDefaultWebhookOptions{
-	// 	Namespace: ns,
-	// 	DryRun:    rootArgs.DryRun,
-	// }
-	// if processed, err := helmreconciler.ProcessDefaultWebhook(kubeClient, iop, exists, opts); err != nil {
-	// 	return fmt.Errorf("failed to process default webhook: %v", err)
-	// } else if processed {
-	// 	p.Println("Made this installation the default for injection and validation.")
-	// }
-
-	if iArgs.Verify {
-		if rootArgs.DryRun {
-			// 		l.LogAndPrint("Control plane health check is not applicable in dry-run mode")
-			// 		return nil
-		}
-		// 	l.LogAndPrint("\n\nVerifying installation:")
-		// 	installationVerifier, err := verifier.NewStatusVerifier(kubeClient, client, iop.Namespace, iArgs.ManifestsPath,
-		// 		iArgs.InFilenames, clioptions.ControlPlaneOptions{Revision: iop.Spec.Revision},
-		// 		verifier.WithLogger(l),
-		// 		verifier.WithIOP(iop),
-		// 	)
-		if err != nil {
-			return fmt.Errorf("failed to setup verifier: %v", err)
-		}
-		// if err := installationVerifier.Verify(); err != nil {
-		// 	return fmt.Errorf("verification failed with the following error: %v", err)
-		// }
-	}
 
 	return nil
 }
